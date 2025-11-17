@@ -305,7 +305,7 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "expr": "topk(10, github_downloads_repository_downloads_total{instance=~\"$instance\",repository=~\"$repository\"})",
+          "expr": "github_downloads_repository_downloads_total{instance=~\"$instance\",repository=~\"$repository\"}",
           "format": "table",
           "instant": true,
           "interval": "",
@@ -317,7 +317,7 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "expr": "topk(10, rate(github_downloads_repository_downloads_total{instance=~\"$instance\",repository=~\"$repository\"}[1h]) * 3600)",
+          "expr": "rate(github_downloads_repository_downloads_total{instance=~\"$instance\",repository=~\"$repository\"}[1h]) * 3600",
           "format": "table",
           "instant": true,
           "interval": "",
@@ -380,6 +380,24 @@
               "Value #D": "Assets",
               "repository": "Repository"
             }
+          }
+        },
+        {
+          "id": "sortBy",
+          "options": {
+            "fields": {},
+            "sort": [
+              {
+                "field": "Total Downloads",
+                "desc": true
+              }
+            ]
+          }
+        },
+        {
+          "id": "limit",
+          "options": {
+            "limitField": 10
           }
         }
       ],
