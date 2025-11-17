@@ -23,6 +23,7 @@ ASSET_REGEX="${ASSET_REGEX:-.*}"
 RELEASE_GROUP_PATTERNS="${RELEASE_GROUP_PATTERNS:-}"  # Comma-separated group:regex pairs
 METRICS_PREFIX="${METRICS_PREFIX:-github_downloads}"
 RATE_LIMIT_DELAY="${RATE_LIMIT_DELAY:-1}"  # 1 second delay between API calls
+MAX_PROCESSING_TIME="${MAX_PROCESSING_TIME:-120}"  # Maximum processing time in seconds
 
 # Logging function
 log() {
@@ -34,7 +35,7 @@ github_api_request() {
     local url="$1"
     
     # Prepare curl command
-    local curl_cmd="curl -s -L"
+    local curl_cmd="curl -s -L --max-time 30"
     
     # Add authorization if token is provided
     if [[ -n "$GITHUB_TOKEN" ]]; then
@@ -46,8 +47,6 @@ github_api_request() {
     
     # Make the request with rate limiting
     sleep "$RATE_LIMIT_DELAY"
-    
-    log "Making API request to: $url"
     
     # Execute the request and handle errors
     local response
@@ -146,9 +145,12 @@ get_repositories() {
             repos_json="[]"
         fi
     elif [[ -n "$GITHUB_ACCOUNT" ]]; then
-        # All repositories for account mode
-        local repos_url="${GITHUB_API_URL}/users/${GITHUB_ACCOUNT}/repos?per_page=100"
+        # All repositories for account mode - limit to repositories with releases to reduce processing time
+        local repos_url="${GITHUB_API_URL}/users/${GITHUB_ACCOUNT}/repos?per_page=100&sort=updated"
         repos_json=$(github_api_request "$repos_url")
+        
+        # Filter out repositories that are likely to not have releases (forks, very old repos)
+        repos_json=$(echo "$repos_json" | jq -r '[.[] | select(.fork == false and .has_downloads == true)]')
     else
         log "ERROR: Either GITHUB_ACCOUNT or both GITHUB_ACCOUNT and GITHUB_REPO must be specified"
         echo "[]"
@@ -185,6 +187,9 @@ get_repository_releases() {
 
 # Function to collect download metrics for all repositories
 collect_download_metrics() {
+    # Trap broken pipe and ignore it
+    trap 'exit 0' PIPE
+    
     local repos_json
     repos_json=$(get_repositories)
     
@@ -356,10 +361,22 @@ collect_exporter_metrics() {
     local start_time end_time duration
     start_time=$(date +%s)
     
+    # Set a timeout to prevent hanging
+    {
+        sleep "$MAX_PROCESSING_TIME"
+        log "WARNING: Processing timeout reached, terminating"
+        kill -TERM $$ 2>/dev/null
+    } &
+    local timeout_pid=$!
+    
     # Collect main metrics
     collect_download_metrics
     echo ""
     collect_rate_limit_metrics
+    
+    # Cancel timeout
+    kill $timeout_pid 2>/dev/null
+    wait $timeout_pid 2>/dev/null
     
     end_time=$(date +%s)
     duration=$((end_time - start_time))
@@ -371,6 +388,9 @@ collect_exporter_metrics() {
 
 # Main function to collect and output all metrics
 collect_metrics() {
+    # Trap broken pipe and exit gracefully
+    trap 'log "Client disconnected, exiting gracefully"; exit 0' PIPE
+    
     # Validate configuration
     if [[ -z "$GITHUB_ACCOUNT" ]]; then
         log "ERROR: GITHUB_ACCOUNT must be specified"
@@ -468,6 +488,7 @@ case "${1:-collect}" in
         echo "  RELEASE_GROUP_PATTERNS - Comma-separated group:regex pairs for release grouping"
         echo "  METRICS_PREFIX         - Metrics prefix (default: github_downloads)"
         echo "  RATE_LIMIT_DELAY       - Delay between API calls in seconds (default: 1)"
+        echo "  MAX_PROCESSING_TIME    - Maximum processing time in seconds (default: 120)"
         ;;
     *)
         log "ERROR: Unknown command: $1"
