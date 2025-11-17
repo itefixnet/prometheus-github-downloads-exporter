@@ -237,6 +237,39 @@ scrape_configs:
     scrape_interval: 5m
 ```
 
+### Grafana Dashboard
+
+The repository includes a comprehensive Grafana dashboard (`grafana-dashboard.json`) with the following features:
+
+**Core Visualizations:**
+- **Total Downloads**: Overall download trends across all repositories
+- **Top Repositories**: Bar chart showing most popular repositories by downloads
+- **Top Releases**: Most downloaded releases across all monitored repositories
+- **Top Assets**: Most popular individual assets/files
+
+**Release Grouping Visualizations:**
+- **Downloads by Release Group**: Bar chart showing download distribution across groups (stable, beta, rc, etc.)
+- **Group Distribution Pie Chart**: Visual breakdown of download percentages per group
+- **Release Group Statistics Table**: Detailed stats per group (downloads, releases, assets count)
+
+**Monitoring & Health:**
+- **GitHub API Rate Limits**: Current usage and remaining quota
+- **Scrape Performance**: Exporter performance metrics
+- **Repository Statistics**: Complete overview table
+
+**Interactive Features:**
+- **Instance Filter**: Monitor multiple exporter instances
+- **Repository Filter**: Focus on specific repositories
+- **Release Group Filter**: Filter by release groups (stable, beta, rc, etc.)
+- **Time Range Selection**: Analyze trends over different periods
+
+**Installation:**
+1. Import `grafana-dashboard.json` into your Grafana instance
+2. Configure the Prometheus datasource
+3. Use the template variables to filter data as needed
+
+The dashboard automatically adapts to your release grouping configuration and provides insights into adoption patterns across different release types.
+
 ## Troubleshooting
 
 ### Common Issues
