@@ -267,40 +267,10 @@
           "interval": "",
           "legendFormat": "",
           "refId": "A"
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
-          },
-          "expr": "github_downloads_group_releases_count{instance=~\"$instance\",release_group=~\"$release_group\",release_group!=\"other\"}",
-          "format": "table",
-          "instant": true,
-          "interval": "",
-          "legendFormat": "",
-          "refId": "B"
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
-          },
-          "expr": "github_downloads_group_assets_count{instance=~\"$instance\",release_group=~\"$release_group\",release_group!=\"other\"}",
-          "format": "table",
-          "instant": true,
-          "interval": "",
-          "legendFormat": "",
-          "refId": "C"
         }
       ],
       "title": "Downloads Distribution by Group",
       "transformations": [
-        {
-          "id": "merge",
-          "options": {
-            "reducers": []
-          }
-        },
         {
           "id": "organize",
           "options": {
@@ -312,14 +282,10 @@
             },
             "indexByName": {
               "release_group": 0,
-              "Value #A": 1,
-              "Value #B": 2,
-              "Value #C": 3
+              "Value": 1
             },
             "renameByName": {
-              "Value #A": "Total Downloads",
-              "Value #B": "Releases",
-              "Value #C": "Assets",
+              "Value": "Total Downloads",
               "release_group": "Release Group"
             }
           }
