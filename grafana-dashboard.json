@@ -595,11 +595,12 @@
       "fieldConfig": {
         "defaults": {
           "color": {
-            "mode": "palette-classic"
+            "mode": "thresholds"
           },
           "custom": {
-            "displayMode": "basic",
-            "orientation": "horizontal"
+            "align": "auto",
+            "displayMode": "auto",
+            "inspect": false
           },
           "mappings": [],
           "thresholds": {
@@ -613,7 +614,24 @@
           },
           "unit": "short"
         },
-        "overrides": []
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Download Rate (/hr)"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "short"
+              },
+              {
+                "id": "custom.displayMode",
+                "value": "basic"
+              }
+            ]
+          }
+        ]
       },
       "gridPos": {
         "h": 6,
@@ -623,16 +641,7 @@
       },
       "id": 9,
       "options": {
-        "displayMode": "basic",
-        "orientation": "horizontal",
-        "reduceOptions": {
-          "values": false,
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": ""
-        },
-        "showUnfilled": true
+        "showHeader": true
       },
       "pluginVersion": "9.0.0",
       "targets": [
@@ -642,13 +651,68 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "expr": "github_downloads_group_downloads_total{instance=~\"$instance\",release_group=~\"$release_group\"}",
+          "format": "table",
+          "instant": true,
           "interval": "",
-          "legendFormat": "{{release_group}}",
+          "legendFormat": "",
           "refId": "A"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "expr": "rate(github_downloads_group_downloads_total{instance=~\"$instance\",release_group=~\"$release_group\"}[1h]) * 3600",
+          "format": "table",
+          "instant": true,
+          "interval": "",
+          "legendFormat": "",
+          "refId": "B"
         }
       ],
       "title": "Downloads by Release Group",
-      "type": "barchart"
+      "transformations": [
+        {
+          "id": "merge",
+          "options": {
+            "reducers": []
+          }
+        },
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "Time": true,
+              "__name__": true,
+              "instance": true,
+              "job": true
+            },
+            "indexByName": {
+              "release_group": 0,
+              "Value #A": 1,
+              "Value #B": 2
+            },
+            "renameByName": {
+              "Value #A": "Total Downloads",
+              "Value #B": "Download Rate (/hr)",
+              "release_group": "Release Group"
+            }
+          }
+        },
+        {
+          "id": "sortBy",
+          "options": {
+            "fields": {},
+            "sort": [
+              {
+                "field": "Total Downloads",
+                "desc": true
+              }
+            ]
+          }
+        }
+      ],
+      "type": "table"
     },
     {
       "datasource": {
