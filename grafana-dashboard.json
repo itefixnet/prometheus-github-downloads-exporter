@@ -253,7 +253,7 @@
             "mode": "palette-classic"
           },
           "custom": {
-            "axisLabel": "",
+            "axisLabel": "Downloads/hour",
             "axisPlacement": "auto",
             "barAlignment": 0,
             "drawStyle": "line",
@@ -296,44 +296,7 @@
           },
           "unit": "short"
         },
-        "overrides": [
-          {
-            "matcher": {
-              "id": "byRegexp",
-              "options": "/.*Total Downloads/"
-            },
-            "properties": [
-              {
-                "id": "custom.axisPlacement",
-                "value": "left"
-              },
-              {
-                "id": "unit",
-                "value": "short"
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byRegexp",
-              "options": "/.*Rate/"
-            },
-            "properties": [
-              {
-                "id": "custom.axisPlacement",
-                "value": "right"
-              },
-              {
-                "id": "unit",
-                "value": "short"
-              },
-              {
-                "id": "custom.axisLabel",
-                "value": "Downloads/hour"
-              }
-            ]
-          }
-        ]
+        "overrides": []
       },
       "gridPos": {
         "h": 8,
@@ -360,23 +323,13 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "expr": "topk(10, github_downloads_repository_downloads_total{instance=~\"$instance\",repository=~\"$repository\"})",
-          "interval": "",
-          "legendFormat": "{{repository}} - Total Downloads",
-          "refId": "A"
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
-          },
           "expr": "topk(10, rate(github_downloads_repository_downloads_total{instance=~\"$instance\",repository=~\"$repository\"}[1h]) * 3600)",
           "interval": "",
-          "legendFormat": "{{repository}} - Rate (/hr)",
-          "refId": "B"
+          "legendFormat": "{{repository}}",
+          "refId": "A"
         }
       ],
-      "title": "Top 10 Repositories - Downloads & Rate",
+      "title": "Top 10 Repositories - Download Rate",
       "type": "timeseries"
     },
     {
