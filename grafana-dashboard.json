@@ -250,12 +250,35 @@
       "fieldConfig": {
         "defaults": {
           "color": {
-            "mode": "thresholds"
+            "mode": "palette-classic"
           },
           "custom": {
-            "align": "auto",
-            "displayMode": "auto",
-            "inspect": false
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "vis": false
+            },
+            "lineInterpolation": "linear",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
           },
           "mappings": [],
           "thresholds": {
@@ -264,6 +287,10 @@
               {
                 "color": "green",
                 "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
               }
             ]
           },
@@ -272,17 +299,37 @@
         "overrides": [
           {
             "matcher": {
-              "id": "byName",
-              "options": "Download Rate"
+              "id": "byRegexp",
+              "options": "/.*Total Downloads/"
             },
             "properties": [
+              {
+                "id": "custom.axisPlacement",
+                "value": "left"
+              },
+              {
+                "id": "unit",
+                "value": "short"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/.*Rate/"
+            },
+            "properties": [
+              {
+                "id": "custom.axisPlacement",
+                "value": "right"
+              },
               {
                 "id": "unit",
                 "value": "short"
               },
               {
-                "id": "custom.displayMode",
-                "value": "basic"
+                "id": "custom.axisLabel",
+                "value": "Downloads/hour"
               }
             ]
           }
@@ -296,7 +343,15 @@
       },
       "id": 3,
       "options": {
-        "showHeader": true
+        "legend": {
+          "calcs": ["lastNotNull"],
+          "displayMode": "table",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
       },
       "pluginVersion": "9.0.0",
       "targets": [
@@ -305,11 +360,9 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "expr": "github_downloads_repository_downloads_total{instance=~\"$instance\",repository=~\"$repository\"}",
-          "format": "table",
-          "instant": true,
+          "expr": "topk(10, github_downloads_repository_downloads_total{instance=~\"$instance\",repository=~\"$repository\"})",
           "interval": "",
-          "legendFormat": "",
+          "legendFormat": "{{repository}} - Total Downloads",
           "refId": "A"
         },
         {
@@ -317,402 +370,14 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "expr": "rate(github_downloads_repository_downloads_total{instance=~\"$instance\",repository=~\"$repository\"}[1h]) * 3600",
-          "format": "table",
-          "instant": true,
+          "expr": "topk(10, rate(github_downloads_repository_downloads_total{instance=~\"$instance\",repository=~\"$repository\"}[1h]) * 3600)",
           "interval": "",
-          "legendFormat": "",
+          "legendFormat": "{{repository}} - Rate (/hr)",
           "refId": "B"
         }
       ],
-      "title": "Top 10 Repositories by Downloads",
-      "transformations": [
-        {
-          "id": "merge",
-          "options": {
-            "reducers": []
-          }
-        },
-        {
-          "id": "organize",
-          "options": {
-            "excludeByName": {
-              "Time": true,
-              "__name__": true,
-              "instance": true,
-              "job": true
-            },
-            "indexByName": {
-              "repository": 0,
-              "Value #A": 1,
-              "Value #B": 2
-            },
-            "renameByName": {
-              "Value #A": "Total Downloads",
-              "Value #B": "Download Rate (/hr)",
-              "repository": "Repository"
-            }
-          }
-        },
-        {
-          "id": "sortBy",
-          "options": {
-            "fields": {},
-            "sort": [
-              {
-                "field": "Total Downloads",
-                "desc": true
-              }
-            ]
-          }
-        },
-        {
-          "id": "limit",
-          "options": {
-            "limitField": 10
-          }
-        }
-      ],
-      "type": "table"
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "${DS_PROMETHEUS}"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "thresholds"
-          },
-          "custom": {
-            "align": "auto",
-            "displayMode": "auto",
-            "inspect": false
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              }
-            ]
-          },
-          "unit": "short"
-        },
-        "overrides": [
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "Download Rate (/hr)"
-            },
-            "properties": [
-              {
-                "id": "unit",
-                "value": "short"
-              },
-              {
-                "id": "custom.displayMode",
-                "value": "basic"
-              }
-            ]
-          }
-        ]
-      },
-      "gridPos": {
-        "h": 8,
-        "w": 12,
-        "x": 0,
-        "y": 16
-      },
-      "id": 4,
-      "options": {
-        "showHeader": true
-      },
-      "pluginVersion": "9.0.0",
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
-          },
-          "expr": "topk(5, github_downloads_release_downloads_total{instance=~\"$instance\",repository=~\"$repository\",release_group=~\"$release_group\"})",
-          "format": "table",
-          "instant": true,
-          "interval": "",
-          "legendFormat": "",
-          "refId": "A"
-        }
-      ],
-      "title": "Top 5 Releases by Downloads",
-      "transformations": [
-        {
-          "id": "merge",
-          "options": {
-            "reducers": []
-          }
-        },
-        {
-          "id": "organize",
-          "options": {
-            "excludeByName": {
-              "Time": true,
-              "__name__": true,
-              "instance": true,
-              "job": true,
-              "tag": true,
-              "prerelease": true
-            },
-            "indexByName": {
-              "repository": 0,
-              "release_group": 1,
-              "Value #A": 2
-            },
-            "renameByName": {
-              "Value #A": "Total Downloads",
-              "repository": "Repository",
-              "release_group": "Group"
-            }
-          }
-        }
-      ],
-      "type": "table"
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "${DS_PROMETHEUS}"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "thresholds"
-          },
-          "custom": {
-            "align": "auto",
-            "displayMode": "auto",
-            "inspect": false
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              }
-            ]
-          },
-          "unit": "short"
-        },
-        "overrides": [
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "Download Rate (/hr)"
-            },
-            "properties": [
-              {
-                "id": "unit",
-                "value": "short"
-              },
-              {
-                "id": "custom.displayMode",
-                "value": "basic"
-              }
-            ]
-          }
-        ]
-      },
-      "gridPos": {
-        "h": 8,
-        "w": 12,
-        "x": 12,
-        "y": 16
-      },
-      "id": 5,
-      "options": {
-        "showHeader": true
-      },
-      "pluginVersion": "9.0.0",
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
-          },
-          "expr": "topk(5, github_downloads_asset_downloads_total{instance=~\"$instance\",repository=~\"$repository\",release_group=~\"$release_group\"})",
-          "format": "table",
-          "instant": true,
-          "interval": "",
-          "legendFormat": "",
-          "refId": "A"
-        }
-      ],
-      "title": "Top 5 Assets by Downloads",
-      "transformations": [
-        {
-          "id": "merge",
-          "options": {
-            "reducers": []
-          }
-        },
-        {
-          "id": "organize",
-          "options": {
-            "excludeByName": {
-              "Time": true,
-              "__name__": true,
-              "instance": true,
-              "job": true,
-              "tag": true,
-              "prerelease": true
-            },
-            "indexByName": {
-              "repository": 0,
-              "asset": 1,
-              "release_group": 2,
-              "Value #A": 3
-            },
-            "renameByName": {
-              "Value #A": "Total Downloads",
-              "repository": "Repository",
-              "asset": "Asset Name",
-              "release_group": "Group"
-            }
-          }
-        }
-      ],
-      "type": "table"
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "${DS_PROMETHEUS}"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "thresholds"
-          },
-          "custom": {
-            "align": "auto",
-            "displayMode": "auto",
-            "inspect": false
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              }
-            ]
-          },
-          "unit": "short"
-        },
-        "overrides": [
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "Download Rate (/hr)"
-            },
-            "properties": [
-              {
-                "id": "unit",
-                "value": "short"
-              },
-              {
-                "id": "custom.displayMode",
-                "value": "basic"
-              }
-            ]
-          }
-        ]
-      },
-      "gridPos": {
-        "h": 6,
-        "w": 12,
-        "x": 0,
-        "y": 24
-      },
-      "id": 9,
-      "options": {
-        "showHeader": true
-      },
-      "pluginVersion": "9.0.0",
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
-          },
-          "expr": "github_downloads_group_downloads_total{instance=~\"$instance\",release_group=~\"$release_group\",release_group!=\"other\"}",
-          "format": "table",
-          "instant": true,
-          "interval": "",
-          "legendFormat": "",
-          "refId": "A"
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
-          },
-          "expr": "rate(github_downloads_group_downloads_total{instance=~\"$instance\",release_group=~\"$release_group\",release_group!=\"other\"}[1h]) * 3600",
-          "format": "table",
-          "instant": true,
-          "interval": "",
-          "legendFormat": "",
-          "refId": "B"
-        }
-      ],
-      "title": "Downloads by Release Group",
-      "transformations": [
-        {
-          "id": "merge",
-          "options": {
-            "reducers": []
-          }
-        },
-        {
-          "id": "organize",
-          "options": {
-            "excludeByName": {
-              "Time": true,
-              "__name__": true,
-              "instance": true,
-              "job": true
-            },
-            "indexByName": {
-              "release_group": 0,
-              "Value #A": 1,
-              "Value #B": 2
-            },
-            "renameByName": {
-              "Value #A": "Total Downloads",
-              "Value #B": "Download Rate (/hr)",
-              "release_group": "Release Group"
-            }
-          }
-        },
-        {
-          "id": "sortBy",
-          "options": {
-            "fields": {},
-            "sort": [
-              {
-                "field": "Total Downloads",
-                "desc": true
-              }
-            ]
-          }
-        }
-      ],
-      "type": "table"
+      "title": "Top 10 Repositories - Downloads & Rate",
+      "type": "timeseries"
     },
     {
       "datasource": {
@@ -736,16 +401,17 @@
         "overrides": []
       },
       "gridPos": {
-        "h": 6,
-        "w": 12,
-        "x": 12,
-        "y": 24
+        "h": 8,
+        "w": 24,
+        "x": 0,
+        "y": 16
       },
       "id": 10,
       "options": {
         "legend": {
-          "displayMode": "list",
-          "placement": "bottom"
+          "displayMode": "table",
+          "placement": "right",
+          "values": ["value", "percent"]
         },
         "pieType": "pie",
         "reduceOptions": {
@@ -835,7 +501,7 @@
         "h": 6,
         "w": 12,
         "x": 0,
-        "y": 30
+        "y": 24
       },
       "id": 7,
       "options": {
@@ -924,7 +590,7 @@
         "h": 6,
         "w": 12,
         "x": 12,
-        "y": 30
+        "y": 24
       },
       "id": 8,
       "options": {
