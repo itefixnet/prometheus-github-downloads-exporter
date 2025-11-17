@@ -1,0 +1,23 @@
+[Unit]
+Description=GitHub Downloads Prometheus Exporter
+Documentation=https://github.com/itefixnet/prometheus-github-downloads-exporter
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=exec
+User=github-downloads-exporter
+Group=github-downloads-exporter
+ExecStart=/opt/github-downloads-exporter/http-server.sh start
+ExecStop=/opt/github-downloads-exporter/http-server.sh stop
+Restart=on-failure
+RestartSec=10
+WorkingDirectory=/opt/github-downloads-exporter
+EnvironmentFile=-/opt/github-downloads-exporter/github-downloads-exporter.conf
+
+# Basic security
+NoNewPrivileges=yes
+PrivateTmp=yes
+
+[Install]
+WantedBy=multi-user.target
