@@ -345,15 +345,11 @@
             "indexByName": {
               "repository": 0,
               "Value #A": 1,
-              "Value #B": 2,
-              "Value #C": 3,
-              "Value #D": 4
+              "Value #B": 2
             },
             "renameByName": {
               "Value #A": "Total Downloads",
               "Value #B": "Download Rate (/hr)",
-              "Value #C": "Releases",
-              "Value #D": "Assets",
               "repository": "Repository"
             }
           }
