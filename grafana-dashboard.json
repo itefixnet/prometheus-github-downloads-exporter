@@ -267,10 +267,26 @@
           "interval": "",
           "legendFormat": "",
           "refId": "A"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "expr": "sum(github_downloads_group_downloads_total{instance=~\"$instance\",release_group!=\"other\"})",
+          "format": "table",
+          "instant": true,
+          "interval": "",
+          "legendFormat": "",
+          "refId": "B"
         }
       ],
       "title": "Downloads Distribution by Group",
       "transformations": [
+        {
+          "id": "merge",
+          "options": {}
+        },
         {
           "id": "organize",
           "options": {
@@ -282,10 +298,12 @@
             },
             "indexByName": {
               "release_group": 0,
-              "Value": 1
+              "Value #A": 1,
+              "Value #B": 2
             },
             "renameByName": {
-              "Value": "Total Downloads",
+              "Value #A": "Total Downloads",
+              "Value #B": "Grand Total",
               "release_group": "Release Group"
             }
           }
@@ -298,9 +316,22 @@
             "binary": {
               "left": "Total Downloads",
               "operator": "/",
-              "reducer": "sum",
-              "right": "Total Downloads"
+              "right": "Grand Total"
             }
+          }
+        },
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "Grand Total": true
+            },
+            "indexByName": {
+              "Release Group": 0,
+              "Total Downloads": 1,
+              "Percentage": 2
+            },
+            "renameByName": {}
           }
         },
         {
