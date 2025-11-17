@@ -345,6 +345,11 @@ collect_download_metrics() {
     if [[ ${#group_downloads[@]} -gt 0 ]]; then
         echo ""
         for group in "${!group_downloads[@]}"; do
+            # Skip the "other" group in metrics output
+            if [[ "$group" == "other" ]]; then
+                continue
+            fi
+            
             local escaped_group
             escaped_group=$(escape_label_value "$group")
             local group_labels="release_group=\"$escaped_group\""
