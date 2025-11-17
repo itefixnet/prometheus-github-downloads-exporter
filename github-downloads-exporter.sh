@@ -293,12 +293,14 @@ collect_download_metrics() {
                 local escaped_release_group
                 escaped_release_group=$(escape_label_value "$release_group")
                 
-                # Asset download count metric with group
-                local labels="repository=\"$escaped_repo_name\",tag=\"$escaped_tag_name\",asset=\"$escaped_asset_name\",release_name=\"$escaped_release_name\",prerelease=\"$prerelease\",release_group=\"$escaped_release_group\""
-                format_metric "asset_downloads_total" "$download_count" "$labels" "Total downloads for a specific asset" "counter"
-                
-                # Asset size metric with group
-                format_metric "asset_size_bytes" "$asset_size" "$labels" "Size of the asset in bytes"
+                # Asset download count metric with group (skip "other" group)
+                if [[ "$release_group" != "other" ]]; then
+                    local labels="repository=\"$escaped_repo_name\",tag=\"$escaped_tag_name\",asset=\"$escaped_asset_name\",release_name=\"$escaped_release_name\",prerelease=\"$prerelease\",release_group=\"$escaped_release_group\""
+                    format_metric "asset_downloads_total" "$download_count" "$labels" "Total downloads for a specific asset" "counter"
+                    
+                    # Asset size metric with group
+                    format_metric "asset_size_bytes" "$asset_size" "$labels" "Size of the asset in bytes"
+                fi
                 
                 # Update group counters
                 group_downloads[$release_group]=$((group_downloads[$release_group] + download_count))
@@ -307,8 +309,8 @@ collect_download_metrics() {
                 echo ""
             done < <(echo "$releases_json" | jq -r --arg tag "$tag_name" '.[] | select(.tag_name == $tag) | .assets[] | "\(.name)|\(.download_count)|\(.size)|\(.content_type // "")"')
             
-            # Release total downloads metric
-            if [[ $release_total_downloads -gt 0 ]]; then
+            # Release total downloads metric (skip "other" group)
+            if [[ $release_total_downloads -gt 0 && "$release_group" != "other" ]]; then
                 local escaped_repo_name escaped_tag_name escaped_release_name escaped_release_group
                 escaped_repo_name=$(escape_label_value "$repo_name")
                 escaped_tag_name=$(escape_label_value "$tag_name")
