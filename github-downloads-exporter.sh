@@ -22,50 +22,16 @@ RELEASE_REGEX="${RELEASE_REGEX:-.*}"
 ASSET_REGEX="${ASSET_REGEX:-.*}"
 RELEASE_GROUP_PATTERNS="${RELEASE_GROUP_PATTERNS:-}"  # Comma-separated group:regex pairs
 METRICS_PREFIX="${METRICS_PREFIX:-github_downloads}"
-CACHE_TTL="${CACHE_TTL:-300}"  # 5 minutes cache by default
 RATE_LIMIT_DELAY="${RATE_LIMIT_DELAY:-1}"  # 1 second delay between API calls
-
-# Cache directory
-CACHE_DIR="${CACHE_DIR:-/tmp/github-downloads-exporter}"
-mkdir -p "$CACHE_DIR"
 
 # Logging function
 log() {
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] $*" >&2
 }
 
-# Function to check if cache file is valid
-is_cache_valid() {
-    local cache_file="$1"
-    local ttl="$2"
-    
-    if [[ ! -f "$cache_file" ]]; then
-        return 1
-    fi
-    
-    local cache_time
-    cache_time=$(stat -c %Y "$cache_file" 2>/dev/null || echo "0")
-    local current_time
-    current_time=$(date +%s)
-    
-    if (( current_time - cache_time < ttl )); then
-        return 0
-    else
-        return 1
-    fi
-}
-
-# Function to make GitHub API request with rate limiting and caching
+# Function to make GitHub API request with rate limiting
 github_api_request() {
     local url="$1"
-    local cache_key="$2"
-    local cache_file="$CACHE_DIR/${cache_key}.json"
-    
-    # Check cache first
-    if is_cache_valid "$cache_file" "$CACHE_TTL"; then
-        cat "$cache_file"
-        return 0
-    fi
     
     # Prepare curl command
     local curl_cmd="curl -s -L"
@@ -92,8 +58,7 @@ github_api_request() {
     
     case "$http_code" in
         "200")
-            # Success - cache the response
-            echo "$response" > "$cache_file"
+            # Success
             echo "$response"
             ;;
         "403")
@@ -172,7 +137,7 @@ get_repositories() {
         # Single repository mode
         local repo_url="${GITHUB_API_URL}/repos/${GITHUB_ACCOUNT}/${GITHUB_REPO}"
         local repo_data
-        repo_data=$(github_api_request "$repo_url" "repo_${GITHUB_ACCOUNT}_${GITHUB_REPO}")
+        repo_data=$(github_api_request "$repo_url")
         
         # Wrap single repo in array format
         if [[ "$repo_data" != "[]" && -n "$repo_data" ]]; then
@@ -183,7 +148,7 @@ get_repositories() {
     elif [[ -n "$GITHUB_ACCOUNT" ]]; then
         # All repositories for account mode
         local repos_url="${GITHUB_API_URL}/users/${GITHUB_ACCOUNT}/repos?per_page=100"
-        repos_json=$(github_api_request "$repos_url" "repos_${GITHUB_ACCOUNT}")
+        repos_json=$(github_api_request "$repos_url")
     else
         log "ERROR: Either GITHUB_ACCOUNT or both GITHUB_ACCOUNT and GITHUB_REPO must be specified"
         echo "[]"
@@ -204,10 +169,9 @@ get_repositories() {
 get_repository_releases() {
     local repo_full_name="$1"
     local releases_url="${GITHUB_API_URL}/repos/${repo_full_name}/releases?per_page=100"
-    local cache_key="releases_$(echo "$repo_full_name" | tr '/' '_')"
     
     local releases_json
-    releases_json=$(github_api_request "$releases_url" "$cache_key")
+    releases_json=$(github_api_request "$releases_url")
     
     # Filter releases by regex
     if [[ "$RELEASE_REGEX" != ".*" ]]; then
@@ -373,7 +337,7 @@ collect_download_metrics() {
 collect_rate_limit_metrics() {
     local rate_limit_url="${GITHUB_API_URL}/rate_limit"
     local rate_limit_json
-    rate_limit_json=$(github_api_request "$rate_limit_url" "rate_limit")
+    rate_limit_json=$(github_api_request "$rate_limit_url")
     
     if [[ "$rate_limit_json" != "[]" && -n "$rate_limit_json" ]]; then
         local core_limit core_remaining core_reset
@@ -466,7 +430,7 @@ case "${1:-collect}" in
         
         # Test API connectivity
         test_url="${GITHUB_API_URL}/users/${GITHUB_ACCOUNT}"
-        test_response=$(github_api_request "$test_url" "test_${GITHUB_ACCOUNT}")
+        test_response=$(github_api_request "$test_url")
         
         if [[ "$test_response" != "[]" && -n "$test_response" ]]; then
             account_name=$(echo "$test_response" | jq -r '.name // .login')
@@ -482,21 +446,15 @@ case "${1:-collect}" in
             exit 1
         fi
         ;;
-    "clean-cache")
-        log "Cleaning cache directory: $CACHE_DIR"
-        rm -rf "$CACHE_DIR"/*
-        log "Cache cleaned"
-        ;;
     "version")
         echo "GitHub Downloads Exporter v1.0.0"
         ;;
     "help"|"-h"|"--help")
-        echo "Usage: $0 [collect|test|clean-cache|version|help]"
+        echo "Usage: $0 [collect|test|version|help]"
         echo ""
         echo "Commands:"
         echo "  collect     - Collect and output Prometheus metrics (default)"
         echo "  test        - Test connection to GitHub API"
-        echo "  clean-cache - Clean the cache directory"
         echo "  version     - Show exporter version"
         echo "  help        - Show this help message"
         echo ""
@@ -509,7 +467,6 @@ case "${1:-collect}" in
         echo "  ASSET_REGEX            - Regex to filter assets (default: .*)"
         echo "  RELEASE_GROUP_PATTERNS - Comma-separated group:regex pairs for release grouping"
         echo "  METRICS_PREFIX         - Metrics prefix (default: github_downloads)"
-        echo "  CACHE_TTL              - Cache TTL in seconds (default: 300)"
         echo "  RATE_LIMIT_DELAY       - Delay between API calls in seconds (default: 1)"
         ;;
     *)
