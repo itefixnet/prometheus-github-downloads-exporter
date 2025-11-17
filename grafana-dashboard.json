@@ -223,6 +223,14 @@
               {
                 "id": "custom.displayMode",
                 "value": "basic"
+              },
+              {
+                "id": "max",
+                "value": 1
+              },
+              {
+                "id": "min",
+                "value": 0
               }
             ]
           },
