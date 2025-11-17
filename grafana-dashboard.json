@@ -218,7 +218,7 @@
             "properties": [
               {
                 "id": "unit",
-                "value": "percent"
+                "value": "percentunit"
               },
               {
                 "id": "custom.displayMode",
@@ -294,16 +294,12 @@
           "id": "calculateField",
           "options": {
             "alias": "Percentage",
+            "mode": "binary",
             "binary": {
               "left": "Total Downloads",
               "operator": "/",
               "reducer": "sum",
               "right": "Total Downloads"
-            },
-            "mode": "binary",
-            "reduce": {
-              "include": ["Total Downloads"],
-              "reducer": "sum"
             }
           }
         },
