@@ -650,7 +650,7 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "expr": "github_downloads_group_downloads_total{instance=~\"$instance\",release_group=~\"$release_group\"}",
+          "expr": "github_downloads_group_downloads_total{instance=~\"$instance\",release_group=~\"$release_group\",release_group!=\"other\"}",
           "format": "table",
           "instant": true,
           "interval": "",
@@ -662,7 +662,7 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "expr": "rate(github_downloads_group_downloads_total{instance=~\"$instance\",release_group=~\"$release_group\"}[1h]) * 3600",
+          "expr": "rate(github_downloads_group_downloads_total{instance=~\"$instance\",release_group=~\"$release_group\",release_group!=\"other\"}[1h]) * 3600",
           "format": "table",
           "instant": true,
           "interval": "",
@@ -766,7 +766,7 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "expr": "github_downloads_group_downloads_total{instance=~\"$instance\",release_group=~\"$release_group\"}",
+          "expr": "github_downloads_group_downloads_total{instance=~\"$instance\",release_group=~\"$release_group\",release_group!=\"other\"}",
           "interval": "",
           "legendFormat": "{{release_group}}",
           "refId": "A"
