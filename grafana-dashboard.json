@@ -323,30 +323,6 @@
           "interval": "",
           "legendFormat": "",
           "refId": "B"
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
-          },
-          "expr": "github_downloads_repository_releases_count{instance=~\"$instance\",repository=~\"$repository\"}",
-          "format": "table",
-          "instant": true,
-          "interval": "",
-          "legendFormat": "",
-          "refId": "C"
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
-          },
-          "expr": "github_downloads_repository_assets_count{instance=~\"$instance\",repository=~\"$repository\"}",
-          "format": "table",
-          "instant": true,
-          "interval": "",
-          "legendFormat": "",
-          "refId": "D"
         }
       ],
       "title": "Top 10 Repositories by Downloads",
