@@ -364,12 +364,16 @@
                 "value": null
               },
               {
+                "color": "orange",
+                "value": 500
+              },
+              {
                 "color": "yellow",
-                "value": 1000
+                "value": 1500
               },
               {
                 "color": "green",
-                "value": 2500
+                "value": 3000
               }
             ]
           },
@@ -385,10 +389,7 @@
       },
       "id": 7,
       "options": {
-        "displayMode": "basic",
-        "maxVizHeight": 300,
-        "minVizHeight": 75,
-        "orientation": "horizontal",
+        "orientation": "auto",
         "reduceOptions": {
           "calcs": [
             "lastNotNull"
@@ -396,7 +397,8 @@
           "fields": "",
           "values": false
         },
-        "showUnfilled": true,
+        "showThresholdLabels": false,
+        "showThresholdMarkers": true,
         "sizing": "auto",
         "text": {}
       },
@@ -415,7 +417,7 @@
         }
       ],
       "title": "API Rate Limit",
-      "type": "bargauge"
+      "type": "gauge"
     },
     {
       "datasource": {
