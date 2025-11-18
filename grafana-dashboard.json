@@ -354,7 +354,7 @@
             "mode": "thresholds"
           },
           "mappings": [],
-          "max": 5000,
+          "max": 1,
           "min": 0,
           "thresholds": {
             "mode": "absolute",
@@ -365,19 +365,19 @@
               },
               {
                 "color": "orange",
-                "value": 500
+                "value": 0.1
               },
               {
                 "color": "yellow",
-                "value": 1500
+                "value": 0.3
               },
               {
                 "color": "green",
-                "value": 3000
+                "value": 0.6
               }
             ]
           },
-          "unit": "short"
+          "unit": "percentunit"
         },
         "overrides": []
       },
@@ -410,21 +410,10 @@
             "uid": null
           },
           "editorMode": "code",
-          "expr": "github_downloads_api_rate_remaining{instance=~\"$instance\"}",
-          "legendFormat": "Remaining",
+          "expr": "github_downloads_api_rate_remaining{instance=~\"$instance\"} / github_downloads_api_rate_limit{instance=~\"$instance\"}",
+          "legendFormat": "API Rate Usage",
           "range": true,
           "refId": "A"
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": null
-          },
-          "editorMode": "code",
-          "expr": "github_downloads_api_rate_limit{instance=~\"$instance\"}",
-          "legendFormat": "Total Limit",
-          "range": true,
-          "refId": "B"
         }
       ],
       "title": "API Rate Limit",
