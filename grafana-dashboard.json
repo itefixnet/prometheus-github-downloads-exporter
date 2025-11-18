@@ -414,6 +414,17 @@
           "legendFormat": "Remaining",
           "range": true,
           "refId": "A"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": null
+          },
+          "editorMode": "code",
+          "expr": "github_downloads_api_rate_limit{instance=~\"$instance\"}",
+          "legendFormat": "Total Limit",
+          "range": true,
+          "refId": "B"
         }
       ],
       "title": "API Rate Limit",
