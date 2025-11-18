@@ -266,7 +266,7 @@
             "uid": null
           },
           "editorMode": "code",
-          "expr": "sum by (release_group) (github_downloads_downloads_total{instance=~\"$instance\",release=~\"(wrbldnsd.*|winrpe.*|wincdu.*|logwot8.*|itmux.*|cwrsync.*|cwpass.*|cowaxess.*|copssh.*|borg4win.*)\"})",
+          "expr": "github_downloads_group_downloads_total{instance=~\"$instance\"}",
           "format": "table",
           "legendFormat": "__auto",
           "range": true,
@@ -275,23 +275,6 @@
       ],
       "title": "Software Category Downloads",
       "transformations": [
-        {
-          "id": "groupBy",
-          "options": {
-            "fields": {
-              "Value": {
-                "aggregations": [
-                  "sum"
-                ],
-                "operation": "aggregate"
-              },
-              "release_group": {
-                "aggregations": [],
-                "operation": "groupby"
-              }
-            }
-          }
-        },
         {
           "id": "organize",
           "options": {
@@ -303,11 +286,11 @@
             },
             "indexByName": {
               "release_group": 0,
-              "Value (sum)": 1
+              "Value": 1
             },
             "renameByName": {
               "release_group": "Software Category",
-              "Value (sum)": "Downloads"
+              "Value": "Downloads"
             }
           }
         },
