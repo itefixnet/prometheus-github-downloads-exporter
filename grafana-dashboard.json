@@ -198,7 +198,7 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "Total Downloads"
+              "options": "Downloads"
             },
             "properties": [
               {
@@ -254,7 +254,7 @@
         "sortBy": [
           {
             "desc": true,
-            "displayName": "Total Downloads"
+            "displayName": "Downloads"
           }
         ]
       },
@@ -266,7 +266,7 @@
             "uid": null
           },
           "editorMode": "code",
-          "expr": "sort_desc(github_downloads_group_downloads_total{instance=~\"$instance\",release_group=~\"$release_group\"})",
+          "expr": "sum by (release_group) (github_downloads_downloads_total{instance=~\"$instance\",release=~\"(wrbldnsd.*|winrpe.*|wincdu.*|logwot8.*|itmux.*|cwrsync.*|cwpass.*|cowaxess.*|copssh.*|borg4win.*)\"})",
           "format": "table",
           "legendFormat": "__auto",
           "range": true,
@@ -275,6 +275,23 @@
       ],
       "title": "Software Category Downloads",
       "transformations": [
+        {
+          "id": "groupBy",
+          "options": {
+            "fields": {
+              "Value": {
+                "aggregations": [
+                  "sum"
+                ],
+                "operation": "aggregate"
+              },
+              "release_group": {
+                "aggregations": [],
+                "operation": "groupby"
+              }
+            }
+          }
+        },
         {
           "id": "organize",
           "options": {
@@ -286,11 +303,11 @@
             },
             "indexByName": {
               "release_group": 0,
-              "Value": 1
+              "Value (sum)": 1
             },
             "renameByName": {
               "release_group": "Software Category",
-              "Value": "Total Downloads"
+              "Value (sum)": "Downloads"
             }
           }
         },
@@ -299,16 +316,28 @@
           "options": {
             "alias": "Percentage",
             "binary": {
-              "left": "Total Downloads",
+              "left": "Downloads",
               "operator": "/",
               "reducer": "sum",
-              "right": "Total Downloads"
+              "right": "Downloads"
             },
             "mode": "reduce",
             "reduce": {
               "reducer": "sum"
             },
             "replaceFields": false
+          }
+        },
+        {
+          "id": "sortBy",
+          "options": {
+            "fields": {},
+            "sort": [
+              {
+                "desc": true,
+                "field": "Downloads"
+              }
+            ]
           }
         }
       ],
@@ -659,7 +688,7 @@
     ]
   },
   "time": {
-    "from": "now-1h",
+    "from": "now-5m",
     "to": "now"
   },
   "timepicker": {},
