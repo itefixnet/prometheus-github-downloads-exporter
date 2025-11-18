@@ -9,6 +9,12 @@ set -euo pipefail
 
 # Source configuration if available
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+# Load .conf file first (systemd/production config)
+CONF_FILE="${SCRIPT_DIR}/github-downloads-exporter.conf"
+[[ -f "$CONF_FILE" ]] && source "$CONF_FILE"
+
+# Then load config.sh (development config, can override .conf)
 CONFIG_FILE="${SCRIPT_DIR}/config.sh"
 [[ -f "$CONFIG_FILE" ]] && source "$CONFIG_FILE"
 
@@ -17,13 +23,12 @@ GITHUB_TOKEN="${GITHUB_TOKEN:-}"
 GITHUB_API_URL="${GITHUB_API_URL:-https://api.github.com}"
 GITHUB_ACCOUNT="${GITHUB_ACCOUNT:-}"
 GITHUB_REPO="${GITHUB_REPO:-}"
-REPO_REGEX="${REPO_REGEX:-.*}"
 RELEASE_REGEX="${RELEASE_REGEX:-.*}"
 ASSET_REGEX="${ASSET_REGEX:-.*}"
 RELEASE_GROUP_PATTERNS="${RELEASE_GROUP_PATTERNS:-}"  # Comma-separated group:regex pairs
 METRICS_PREFIX="${METRICS_PREFIX:-github_downloads}"
-RATE_LIMIT_DELAY="${RATE_LIMIT_DELAY:-1}"  # 1 second delay between API calls
-MAX_PROCESSING_TIME="${MAX_PROCESSING_TIME:-120}"  # Maximum processing time in seconds
+RATE_LIMIT_DELAY="${RATE_LIMIT_DELAY:-0.2}"  # 0.2 second delay between API calls
+MAX_PROCESSING_TIME="${MAX_PROCESSING_TIME:-60}"  # Maximum processing time in seconds
 
 # Logging function
 log() {
@@ -128,42 +133,26 @@ get_release_group() {
     echo "other"
 }
 
-# Function to get repositories based on account/repo configuration
+# Function to get single repository configuration
 get_repositories() {
-    local repos_json=""
-    
-    if [[ -n "$GITHUB_REPO" && -n "$GITHUB_ACCOUNT" ]]; then
-        # Single repository mode
-        local repo_url="${GITHUB_API_URL}/repos/${GITHUB_ACCOUNT}/${GITHUB_REPO}"
-        local repo_data
-        repo_data=$(github_api_request "$repo_url")
-        
-        # Wrap single repo in array format
-        if [[ "$repo_data" != "[]" && -n "$repo_data" ]]; then
-            repos_json="[$repo_data]"
-        else
-            repos_json="[]"
-        fi
-    elif [[ -n "$GITHUB_ACCOUNT" ]]; then
-        # All repositories for account mode - limit to repositories with releases to reduce processing time
-        local repos_url="${GITHUB_API_URL}/users/${GITHUB_ACCOUNT}/repos?per_page=100&sort=updated"
-        repos_json=$(github_api_request "$repos_url")
-        
-        # Filter out repositories that are likely to not have releases (forks, very old repos)
-        repos_json=$(echo "$repos_json" | jq -r '[.[] | select(.fork == false and .has_downloads == true)]')
-    else
-        log "ERROR: Either GITHUB_ACCOUNT or both GITHUB_ACCOUNT and GITHUB_REPO must be specified"
+    # Single repository mode only - both GITHUB_ACCOUNT and GITHUB_REPO are required
+    if [[ -z "$GITHUB_ACCOUNT" || -z "$GITHUB_REPO" ]]; then
+        log "ERROR: Both GITHUB_ACCOUNT and GITHUB_REPO must be specified"
         echo "[]"
         return 1
     fi
     
-    # Filter repositories by regex
-    if [[ "$REPO_REGEX" != ".*" ]]; then
-        echo "$repos_json" | jq -r --arg regex "$REPO_REGEX" '
-            [.[] | select(.name | test($regex))]
-        '
+    local repo_url="${GITHUB_API_URL}/repos/${GITHUB_ACCOUNT}/${GITHUB_REPO}"
+    local repo_data
+    repo_data=$(github_api_request "$repo_url")
+    
+    # Wrap single repo in array format for compatibility with existing processing code
+    if [[ "$repo_data" != "[]" && -n "$repo_data" ]]; then
+        echo "[$repo_data]"
     else
-        echo "$repos_json"
+        log "ERROR: Repository ${GITHUB_ACCOUNT}/${GITHUB_REPO} not found or accessible"
+        echo "[]"
+        return 1
     fi
 }
 
@@ -185,7 +174,7 @@ get_repository_releases() {
     fi
 }
 
-# Function to collect download metrics for all repositories
+# Function to collect download metrics for repository
 collect_download_metrics() {
     # Trap broken pipe and ignore it
     trap 'exit 0' PIPE
@@ -194,7 +183,7 @@ collect_download_metrics() {
     repos_json=$(get_repositories)
     
     if [[ "$repos_json" == "[]" || -z "$repos_json" ]]; then
-        log "No repositories found or accessible"
+        log "Repository not found or accessible"
         return 1
     fi
     
@@ -207,7 +196,7 @@ collect_download_metrics() {
     declare -A group_releases=()
     declare -A group_assets=()
     
-    # Process each repository
+    # Process the repository
     while IFS='|' read -r repo_full_name repo_name repo_description; do
         log "Processing repository: $repo_full_name"
         
@@ -333,9 +322,9 @@ collect_download_metrics() {
     fi
     
     # Global summary metrics
-    format_metric "total_downloads" "$total_downloads" "" "Total downloads across all repositories" "counter"
-    format_metric "total_releases" "$total_releases" "" "Total number of releases across all repositories"
-    format_metric "total_assets" "$total_assets" "" "Total number of assets across all repositories"
+    format_metric "total_downloads" "$total_downloads" "" "Total downloads for repository" "counter"
+    format_metric "total_releases" "$total_releases" "" "Total number of releases for repository"
+    format_metric "total_assets" "$total_assets" "" "Total number of assets for repository"
 }
 
 # Function to collect API rate limit metrics
@@ -361,22 +350,10 @@ collect_exporter_metrics() {
     local start_time end_time duration
     start_time=$(date +%s)
     
-    # Set a timeout to prevent hanging
-    {
-        sleep "$MAX_PROCESSING_TIME"
-        log "WARNING: Processing timeout reached, terminating"
-        kill -TERM $$ 2>/dev/null
-    } &
-    local timeout_pid=$!
-    
     # Collect main metrics
     collect_download_metrics
     echo ""
     collect_rate_limit_metrics
-    
-    # Cancel timeout
-    kill $timeout_pid 2>/dev/null
-    wait $timeout_pid 2>/dev/null
     
     end_time=$(date +%s)
     duration=$((end_time - start_time))
@@ -391,9 +368,10 @@ collect_metrics() {
     # Trap broken pipe and exit gracefully
     trap 'log "Client disconnected, exiting gracefully"; exit 0' PIPE
     
-    # Validate configuration
-    if [[ -z "$GITHUB_ACCOUNT" ]]; then
-        log "ERROR: GITHUB_ACCOUNT must be specified"
+    # Validate configuration - both account and repository are required
+    if [[ -z "$GITHUB_ACCOUNT" || -z "$GITHUB_REPO" ]]; then
+        log "ERROR: Both GITHUB_ACCOUNT and GITHUB_REPO must be specified"
+        log "ERROR: This exporter only supports single repository monitoring"
         exit 1
     fi
     
@@ -418,9 +396,6 @@ collect_metrics() {
     if [[ -n "$GITHUB_REPO" ]]; then
         echo "# Repository: $GITHUB_REPO"
     fi
-    if [[ "$REPO_REGEX" != ".*" ]]; then
-        echo "# Repository filter: $REPO_REGEX"
-    fi
     if [[ "$RELEASE_REGEX" != ".*" ]]; then
         echo "# Release filter: $RELEASE_REGEX"
     fi
@@ -443,26 +418,28 @@ case "${1:-collect}" in
         ;;
     "test")
         log "Testing GitHub API connection..."
-        if [[ -z "$GITHUB_ACCOUNT" ]]; then
-            log "ERROR: GITHUB_ACCOUNT must be specified for testing"
+        if [[ -z "$GITHUB_ACCOUNT" || -z "$GITHUB_REPO" ]]; then
+            log "ERROR: Both GITHUB_ACCOUNT and GITHUB_REPO must be specified for testing"
             exit 1
         fi
         
-        # Test API connectivity
-        test_url="${GITHUB_API_URL}/users/${GITHUB_ACCOUNT}"
+        # Test API connectivity and repository access
+        test_url="${GITHUB_API_URL}/repos/${GITHUB_ACCOUNT}/${GITHUB_REPO}"
         test_response=$(github_api_request "$test_url")
         
         if [[ "$test_response" != "[]" && -n "$test_response" ]]; then
-            account_name=$(echo "$test_response" | jq -r '.name // .login')
+            repo_name=$(echo "$test_response" | jq -r '.full_name')
+            repo_description=$(echo "$test_response" | jq -r '.description // "No description"')
             log "SUCCESS: Connected to GitHub API"
-            log "Account: $account_name"
+            log "Repository: $repo_name"
+            log "Description: $repo_description"
             
             # Test rate limit
             collect_rate_limit_metrics > /dev/null
             log "Rate limit check successful"
             exit 0
         else
-            log "ERROR: Cannot connect to GitHub API or account not found"
+            log "ERROR: Cannot connect to GitHub API or repository ${GITHUB_ACCOUNT}/${GITHUB_REPO} not found"
             exit 1
         fi
         ;;
@@ -481,8 +458,7 @@ case "${1:-collect}" in
         echo "Environment variables:"
         echo "  GITHUB_TOKEN           - GitHub API token (optional, but recommended)"
         echo "  GITHUB_ACCOUNT         - GitHub account/organization name (required)"
-        echo "  GITHUB_REPO            - Specific repository name (optional, defaults to all repos)"
-        echo "  REPO_REGEX             - Regex to filter repositories (default: .*)"
+        echo "  GITHUB_REPO            - Repository name (required)"
         echo "  RELEASE_REGEX          - Regex to filter releases (default: .*)"
         echo "  ASSET_REGEX            - Regex to filter assets (default: .*)"
         echo "  RELEASE_GROUP_PATTERNS - Comma-separated group:regex pairs for release grouping"

@@ -1,6 +1,6 @@
 [Unit]
 Description=GitHub Downloads Prometheus Exporter
-Documentation=https://github.com/itefixnet/prometheus-github-downloads-exporter
+Documentation=https://github.com/USER/prometheus-github-downloads-exporter
 After=network-online.target
 Wants=network-online.target
 
