@@ -1,3 +1,5 @@
+![](grafana-dashboard-github-downloads.png)
+
 # GitHub Downloads Prometheus Exporter
 
 A lightweight, bash-based Prometheus exporter for GitHub repository release download statistics. This exporter uses only bash, curl, jq, and socat to provide comprehensive download metrics for monitoring with Prometheus and Grafana.
