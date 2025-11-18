@@ -555,7 +555,7 @@
           "type": "prometheus",
           "uid": null
         },
-        "definition": "label_values(github_downloads_total_downloads, instance)",
+        "definition": "label_values(github_downloads_total_downloads, repository)",
         "hide": 0,
         "includeAll": false,
         "label": "Instance",
@@ -563,7 +563,7 @@
         "name": "instance",
         "options": [],
         "query": {
-          "query": "label_values(github_downloads_total_downloads, instance)",
+          "query": "label_values(github_downloads_total_downloads, repository)",
           "refId": "PrometheusVariableQueryEditor-VariableQuery"
         },
         "refresh": 2,
@@ -587,7 +587,7 @@
           "type": "prometheus",
           "uid": null
         },
-        "definition": "label_values(github_downloads_group_downloads_total{instance=~\"$instance\"}, release_group)",
+        "definition": "label_values(github_downloads_group_downloads_total, release_group)",
         "hide": 0,
         "includeAll": true,
         "label": "Software Category",
@@ -595,7 +595,7 @@
         "name": "release_group",
         "options": [],
         "query": {
-          "query": "label_values(github_downloads_group_downloads_total{instance=~\"$instance\"}, release_group)",
+          "query": "label_values(github_downloads_group_downloads_total, release_group)",
           "refId": "PrometheusVariableQueryEditor-VariableQuery"
         },
         "refresh": 2,
