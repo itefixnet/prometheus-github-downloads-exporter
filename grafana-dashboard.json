@@ -266,7 +266,7 @@
             "uid": null
           },
           "editorMode": "code",
-          "expr": "sort_desc(github_downloads_group_downloads_total{instance=~\"$instance\",release_group=~\"$release_group\"})",
+          "expr": "sort_desc(sum by (release_group) (github_downloads_group_downloads_total{instance=~\"$instance\",release_group=~\"$release_group\"}))",
           "format": "table",
           "legendFormat": "__auto",
           "range": true,
