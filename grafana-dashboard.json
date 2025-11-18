@@ -266,7 +266,7 @@
             "uid": null
           },
           "editorMode": "code",
-          "expr": "max by (release_group) (github_downloads_group_downloads_total)",
+          "expr": "github_downloads_group_downloads_total",
           "format": "table",
           "legendFormat": "__auto",
           "range": true,
