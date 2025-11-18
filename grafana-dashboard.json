@@ -354,11 +354,13 @@
             "mode": "thresholds"
           },
           "mappings": [],
+          "max": 5000,
+          "min": 0,
           "thresholds": {
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
+                "color": "red",
                 "value": null
               },
               {
@@ -366,8 +368,8 @@
                 "value": 1000
               },
               {
-                "color": "red",
-                "value": 100
+                "color": "green",
+                "value": 2500
               }
             ]
           },
@@ -383,10 +385,10 @@
       },
       "id": 7,
       "options": {
-        "colorMode": "value",
-        "graphMode": "area",
-        "justifyMode": "auto",
-        "orientation": "auto",
+        "displayMode": "basic",
+        "maxVizHeight": 300,
+        "minVizHeight": 75,
+        "orientation": "horizontal",
         "reduceOptions": {
           "calcs": [
             "lastNotNull"
@@ -394,7 +396,9 @@
           "fields": "",
           "values": false
         },
-        "textMode": "auto"
+        "showUnfilled": true,
+        "sizing": "auto",
+        "text": {}
       },
       "pluginVersion": "10.0.0",
       "targets": [
@@ -410,8 +414,8 @@
           "refId": "A"
         }
       ],
-      "title": "API Rate Limit Remaining",
-      "type": "stat"
+      "title": "API Rate Limit",
+      "type": "bargauge"
     },
     {
       "datasource": {
@@ -509,7 +513,7 @@
       },
       "gridPos": {
         "h": 4,
-        "w": 6,
+        "w": 12,
         "x": 12,
         "y": 16
       },
@@ -543,76 +547,6 @@
         }
       ],
       "title": "Last Successful Scrape",
-      "type": "stat"
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": null
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "thresholds"
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              },
-              {
-                "color": "yellow",
-                "value": 4000
-              },
-              {
-                "color": "red",
-                "value": 5000
-              }
-            ]
-          },
-          "unit": "short"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 4,
-        "w": 6,
-        "x": 18,
-        "y": 16
-      },
-      "id": 10,
-      "options": {
-        "colorMode": "value",
-        "graphMode": "area",
-        "justifyMode": "auto",
-        "orientation": "auto",
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "",
-          "values": false
-        },
-        "textMode": "auto"
-      },
-      "pluginVersion": "10.0.0",
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": null
-          },
-          "editorMode": "code",
-          "expr": "github_downloads_api_rate_limit{instance=~\"$instance\"}",
-          "legendFormat": "Limit",
-          "range": true,
-          "refId": "A"
-        }
-      ],
-      "title": "API Rate Limit",
       "type": "stat"
     }
   ],
