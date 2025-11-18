@@ -281,7 +281,8 @@
             "excludeByName": {
               "Time": true,
               "instance": true,
-              "__name__": true
+              "__name__": true,
+              "job": true
             },
             "indexByName": {
               "release_group": 0,
@@ -303,10 +304,11 @@
               "reducer": "sum",
               "right": "Total Downloads"
             },
-            "mode": "binary",
+            "mode": "reduce",
             "reduce": {
               "reducer": "sum"
-            }
+            },
+            "replaceFields": false
           }
         }
       ],
