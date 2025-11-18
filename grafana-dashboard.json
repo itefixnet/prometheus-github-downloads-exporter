@@ -25,7 +25,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "${DS_PROMETHEUS}"
+        "uid": null
       },
       "fieldConfig": {
         "defaults": {
@@ -80,7 +80,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
+            "uid": null
           },
           "editorMode": "code",
           "expr": "github_downloads_total_downloads{instance=~\"$instance\"}",
@@ -95,7 +95,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "${DS_PROMETHEUS}"
+        "uid": null
       },
       "fieldConfig": {
         "defaults": {
@@ -150,7 +150,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
+            "uid": null
           },
           "editorMode": "code",
           "expr": "github_downloads_total_releases{instance=~\"$instance\"}",
@@ -165,7 +165,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "${DS_PROMETHEUS}"
+        "uid": null
       },
       "fieldConfig": {
         "defaults": {
@@ -221,7 +221,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
+            "uid": null
           },
           "editorMode": "code",
           "expr": "github_downloads_group_downloads_total{instance=~\"$instance\",release_group=~\"$release_group\"}",
@@ -236,7 +236,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "${DS_PROMETHEUS}"
+        "uid": null
       },
       "fieldConfig": {
         "defaults": {
@@ -315,7 +315,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
+            "uid": null
           },
           "editorMode": "code",
           "expr": "sort_desc(github_downloads_group_downloads_total{instance=~\"$instance\",release_group=~\"$release_group\"})",
@@ -330,7 +330,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "${DS_PROMETHEUS}"
+        "uid": null
       },
       "fieldConfig": {
         "defaults": {
@@ -410,7 +410,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
+            "uid": null
           },
           "editorMode": "code",
           "expr": "sort_desc(github_downloads_group_downloads_total{instance=~\"$instance\",release_group=~\"$release_group\"})",
@@ -443,7 +443,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "${DS_PROMETHEUS}"
+        "uid": null
       },
       "fieldConfig": {
         "defaults": {
@@ -535,7 +535,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
+            "uid": null
           },
           "editorMode": "code",
           "expr": "sort_desc(github_downloads_asset_downloads_total{instance=~\"$instance\",release_group=~\"$release_group\"})",
@@ -547,7 +547,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
+            "uid": null
           },
           "editorMode": "code",
           "expr": "github_downloads_asset_size_bytes{instance=~\"$instance\",release_group=~\"$release_group\"}",
@@ -597,7 +597,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "${DS_PROMETHEUS}"
+        "uid": null
       },
       "fieldConfig": {
         "defaults": {
@@ -652,7 +652,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
+            "uid": null
           },
           "editorMode": "code",
           "expr": "github_downloads_api_rate_remaining{instance=~\"$instance\"}",
@@ -667,7 +667,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "${DS_PROMETHEUS}"
+        "uid": null
       },
       "fieldConfig": {
         "defaults": {
@@ -722,7 +722,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
+            "uid": null
           },
           "editorMode": "code",
           "expr": "github_downloads_scrape_duration_seconds{instance=~\"$instance\"}",
@@ -737,7 +737,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "${DS_PROMETHEUS}"
+        "uid": null
       },
       "fieldConfig": {
         "defaults": {
@@ -784,7 +784,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
+            "uid": null
           },
           "editorMode": "code",
           "expr": "github_downloads_scrape_timestamp{instance=~\"$instance\"} * 1000",
@@ -799,7 +799,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "${DS_PROMETHEUS}"
+        "uid": null
       },
       "fieldConfig": {
         "defaults": {
@@ -854,7 +854,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
+            "uid": null
           },
           "editorMode": "code",
           "expr": "github_downloads_api_rate_limit{instance=~\"$instance\"}",
@@ -885,7 +885,7 @@
         },
         "datasource": {
           "type": "prometheus",
-          "uid": "${DS_PROMETHEUS}"
+          "uid": null
         },
         "definition": "label_values(github_downloads_total_downloads, instance)",
         "hide": 0,
@@ -917,7 +917,7 @@
         },
         "datasource": {
           "type": "prometheus",
-          "uid": "${DS_PROMETHEUS}"
+          "uid": null
         },
         "definition": "label_values(github_downloads_group_downloads_total{instance=~\"$instance\"}, release_group)",
         "hide": 0,
